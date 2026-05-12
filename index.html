@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoohub Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body {
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(circle at top, #0f172a, #020617 60%, #000);
+            color: white;
+            padding: 20px;
+        }
+        .blob {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            filter: blur(50px); /* Optimal performance */
+            opacity: 0.3;
+            z-index: 1;
+            will-change: transform;
+        }
+        .b1 { background: #22c55e; top: 10%; left: 10%; animation: float1 12s infinite ease-in-out; }
+        .b2 { background: #06b6d4; bottom: 10%; right: 10%; animation: float2 15s infinite ease-in-out; }
+        .b3 { 
+            background: #a855f7; 
+            top: 50%; left: 50%; 
+            /* Fixed: ใช้ margin-left/top แทนการทับซ้อน transform */
+            margin-left: -125px; margin-top: -125px; 
+            animation: float3 10s infinite ease-in-out; 
+        }
+
+        @keyframes float1 { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px, 30px) scale(1.1); } }
+        @keyframes float2 { 0%, 100% { transform: translate(0,0) scale(1.1); } 50% { transform: translate(-30px, -20px) scale(1); } }
+        @keyframes float3 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .card:hover { border-color: rgba(255, 255, 255, 0.15); transform: translateY(-5px); }
+
+        h1 {
+            margin-bottom: 25px;
+            background: linear-gradient(90deg, #22c55e, #06b6d4, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 30px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 160px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            outline: none;
+            padding: 15px;
+            border-radius: 18px;
+            color: #00ffae;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            resize: none;
+            margin-bottom: 20px;
+            transition: 0.2s;
+        }
+        textarea:focus { border-color: #06b6d4; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 18px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            color: #000;
+            background: linear-gradient(90deg, #22c55e, #06b6d4, #a855f7);
+            background-size: 200% 200%;
+            animation: glow 5s infinite linear;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover { 
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+        button:active { transform: scale(0.98); }
+
+        @keyframes glow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+        .tag { margin-top: 20px; font-size: 11px; opacity: 0.4; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #fff;
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="card">
+        <h1>⚡ Yoohub Bond Beta</h1>
+        <textarea id="script" spellcheck="false" readonly>loadstring(game:HttpGet("https://raw.githubusercontent.com/yoooHub/yoohub/refs/heads/main/bond%20beta.lua"))()</textarea>
+        <button id="copyBtn" onclick="copyScript()">📋 Copy Script</button>
+        <div class="tag">Production v2.1 • High Precision</div>
+    </div>
+    <div id="toast" class="toast">Copied!</div>
+
+    <script>
+        async function copyScript() {
+            const text = document.getElementById("script").value;
+            const el = document.getElementById("script");
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast("Copied Successfully!");
+            } catch (err) {
+                el.focus();
+                el.select();
+                el.setSelectionRange(0, el.value.length);
+                const success = document.execCommand("copy");
+                showToast(success ? "Copied! (Fallback)" : "Copy Failed");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2000);
+        }
+    </script>
+</body>
+</html>
